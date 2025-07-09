@@ -3,9 +3,6 @@ import pandas as pd
 import io
 import xlsxwriter
 import plotly.express as px
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils import safe_date_for_excel, format_date_for_display
 
 def df_to_excel_bytes(df: pd.DataFrame) -> bytes:
@@ -104,7 +101,6 @@ def render_detailed_report(df: pd.DataFrame):
     # Mostrar tabla en la app
     st.dataframe(display_df[['nombre', 'tipo', 'estado', 'proyecto', 'asignados', 'fecha_inicio', 'fecha_limite']])
 
-<<<<<<< HEAD
     # Botón de descarga de Excel
     excel_bytes = df_to_excel_bytes(df)
     st.download_button(
@@ -114,29 +110,3 @@ def render_detailed_report(df: pd.DataFrame):
         mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         help="Descarga la tabla detallada de tareas y subtareas en formato Excel."
     )
-=======
-    # Crear dos columnas para los botones
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Botón de descarga de Excel con Gantt y datos
-        excel_bytes = df_to_excel_bytes(df)
-        st.download_button(
-            label="📊 Descargar reporte completo",
-            data=excel_bytes,
-            file_name='reporte_datos_completo.xlsx',
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            help="Descarga solo la tabla de datos en Excel (sin diagrama de Gantt)"
-        )
-    
-    with col2:
-        # Botón de descarga SOLO del diagrama de Gantt optimizado
-        gantt_bytes = gantt_only_to_excel(df)
-        st.download_button(
-            label="Descargar Diagrama de Gantt",
-            data=gantt_bytes,
-            file_name='diagrama_gantt_optimizado.xlsx',
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            help="Descarga únicamente el diagrama de Gantt con gráfico de barras profesional"
-        )
->>>>>>> ef528cad3a5336ad82241c85291e018ea894b959
