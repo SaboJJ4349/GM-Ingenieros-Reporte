@@ -1,0 +1,24 @@
+[theme]
+# Colores y fuente para la app
+primaryColor = "#667eea"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f2f6"
+textColor = "#262730"
+font = "sans serif"
+
+[server]
+# Modo headless: no intenta abrir navegador
+headless = true
+# Escucha en todas las interfaces (importante en despliegues)
+address = "0.0.0.0"
+# Puerto de la app
+port = 8501
+# Desactivar CORS y XSRF si el despliegue lo controla externamente
+enableCORS = false
+enableXsrfProtection = false
+# Desactiva el watcher para que no recargue al cambiar archivos
+fileWatcherType = "none"
+
+[browser]
+# Evita recopilar estadísticas de uso
+gatherUsageStats = false
