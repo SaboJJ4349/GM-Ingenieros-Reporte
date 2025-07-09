@@ -25,6 +25,14 @@ def charts_to_excel(figs: dict) -> bytes:
         for title, fig in figs.items():
             # Usar un tema claro para la exportación para evitar fondos negros
             fig.layout.template = "plotly_white"
+
+            # Cambiar colores para la exportación
+            if title == "Tareas por Prioridad":
+                new_colors = px.colors.qualitative.Pastel
+                for i, trace in enumerate(fig.data):
+                    if hasattr(trace, 'marker'):
+                        trace.marker.color = new_colors[i % len(new_colors)]
+
             image_data = io.BytesIO(fig.to_image(format="png", scale=2))
             worksheet.write(f'A{row_offset}', title, header_format)
             worksheet.insert_image(f'A{row_offset + 1}', title, {'image_data': image_data})
@@ -72,14 +80,32 @@ def render_dashboard(df: pd.DataFrame):
         st.plotly_chart(fig_pie, use_container_width=True)
         figs_to_export["Tareas por Estado"] = fig_pie
 
-   with col2:
-        st.subheader("Distribución por Prioridad")
-        prioridad_counts = df['prioridad'].value_counts()
+    with col2:
+        st.subheader("Distribución de Tareas por Prioridad")
+        
+        # Traducción de los valores de prioridad
+        priority_translation = {
+            'normal': 'Normal',
+            'high': 'Alta',
+            'low': 'Baja',
+            'urgent': 'Urgente'
+        }
+        
+        # Copia para evitar SettingWithCopyWarning
+        df_copy = df.copy()
+        df_copy['prioridad_traducida'] = df_copy['prioridad'].map(priority_translation)
+        
+        prioridad_counts = df_copy['prioridad_traducida'].value_counts().reset_index()
+        prioridad_counts.columns = ['Prioridad', 'Número de Tareas']
+        
         fig_bar = px.bar(
-            x=prioridad_counts.index, 
-            y=prioridad_counts.values,
+            prioridad_counts,
+            x='Prioridad', 
+            y='Número de Tareas',
             title="Tareas por Prioridad",
-            labels={'x': 'Prioridad', 'y': 'Número de Tareas'}
+            labels={'x': 'Prioridad', 'y': 'Número de Tareas'},
+            color='Prioridad',
+            color_discrete_sequence=px.colors.qualitative.Vivid
         )
         st.plotly_chart(fig_bar, use_container_width=True)
         figs_to_export["Tareas por Prioridad"] = fig_bar
