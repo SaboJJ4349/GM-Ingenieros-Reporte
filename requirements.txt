@@ -1,6 +1,6 @@
-streamlit
-pandas
-plotly
-pytest
-xlsxwriter
-kaleido
+streamlit>=1.20.0
+pandas>=2.0.0
+plotly>=5.15.0
+kaleido>=0.2.1
+XlsxWriter>=3.0.0
+pytest>=7.0.0
