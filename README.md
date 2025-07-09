@@ -61,4 +61,4 @@ Una aplicación Streamlit para visualizar y generar reportes de productividad co
 - Pandas
 - Plotly
 - XlsxWriter
-- Python 3.11+
+- Python 3.13+
