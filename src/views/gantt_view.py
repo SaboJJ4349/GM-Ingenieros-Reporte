@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import io
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils import safe_date_for_excel
 
 def gantt_only_to_excel(df: pd.DataFrame, original_df: pd.DataFrame) -> bytes:
@@ -306,7 +303,7 @@ def render_gantt_view(df: pd.DataFrame):
     st.download_button(
         label="📈 Descargar Diagrama de Gantt",
         data=excel_data,
-        file_name="diagrama_gantt_Actual.xlsx",
+        file_name="diagrama_gantt_optimizado.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         help="Descarga el diagrama de Gantt con gráfico nativo de Excel"
     )
