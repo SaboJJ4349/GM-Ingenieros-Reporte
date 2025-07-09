@@ -1,4 +1,10 @@
 import os
+import sys
+
+# Añadir el directorio 'src' al sys.path para asegurar que los módulos se encuentren
+# tanto en local como en despliegues en la nube.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
+
 
 # ---------------------------------------------------
 # Configuración para que Kaleido encuentre el binario
