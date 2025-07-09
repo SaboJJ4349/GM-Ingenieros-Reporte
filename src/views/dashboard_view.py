@@ -73,16 +73,19 @@ def render_dashboard(df: pd.DataFrame):
         figs_to_export["Tareas por Estado"] = fig_pie
 
     with col2:
-        st.subheader("Distribución por Prioridad")
-        prioridad_counts = df['prioridad'].value_counts()
-        fig_bar = px.bar(
-            x=prioridad_counts.index, 
-            y=prioridad_counts.values,
-            title="Tareas por Prioridad",
-            labels={'x': 'Prioridad', 'y': 'Número de Tareas'}
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
-        figs_to_export["Tareas por Prioridad"] = fig_bar
+    st.subheader("Distribución por Prioridad")
+    prioridad_counts = df['prioridad'].value_counts()
+
+    fig_bar = px.bar(
+        x=prioridad_counts.index,
+        y=prioridad_counts.values,
+        title="Tareas por Prioridad",
+        labels={'x': 'Prioridad', 'y': 'Número de Tareas'},
+        color=prioridad_counts.index,                         # pinta según la categoría
+        color_discrete_sequence=px.colors.qualitative.Plotly    # paleta de Plotly
+    )
+    st.plotly_chart(fig_bar, use_container_width=True)
+    figs_to_export["Tareas por Prioridad"] = fig_bar
 
     # --- Botón de Descarga ---
     st.markdown("---")
