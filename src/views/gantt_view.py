@@ -275,9 +275,9 @@ def render_gantt_view(df: pd.DataFrame):
     excel_data = gantt_only_to_excel(gantt_df)
     
     st.download_button(
-        label="� Descargar Diagrama de Gantt",
+        label=" Descargar Diagrama de Gantt",
         data=excel_data,
-        file_name="diagrama_gantt_optimizado.xlsx",
+        file_name="diagrama_gantt_actual.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         help="Descarga el diagrama de Gantt con gráfico nativo de Excel"
     )
