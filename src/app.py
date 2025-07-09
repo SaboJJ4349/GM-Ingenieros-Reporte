@@ -1,3 +1,16 @@
+import os
+
+# ---------------------------------------------------
+# Configuración para que Kaleido encuentre el binario
+# ---------------------------------------------------
+# Ajusta la ruta si tu entorno instala chromium o chromium-browser en otro lugar.
+os.environ["BROWSER_PATH"] = "/usr/bin/chromium-browser"
+
+# Fuerza a Kaleido a usar ese ejecutable
+import plotly.io as pio
+pio.kaleido.scope.default_executable = os.environ["BROWSER_PATH"]
+# ---------------------------------------------------
+
 import streamlit as st
 import pandas as pd
 from data_loader import load_and_normalize_json
@@ -43,7 +56,6 @@ def main():
     if 'gantt_selected_proyectos' not in st.session_state:
         st.session_state.gantt_selected_proyectos = data_manager_original.get_unique_values('proyecto')
 
-
     # --- Barra lateral de filtros ---
     st.sidebar.header("Filtros Globales")
     
@@ -75,13 +87,13 @@ def main():
     )
     st.session_state.date_range = (selected_start_date, selected_end_date)
 
-
     # Aplicar filtros
     filtered_manager = (data_manager_original
                         .filter_by_area(st.session_state.selected_areas)
                         .filter_by_project(st.session_state.selected_proyectos)
                         .filter_by_status(st.session_state.selected_estados)
-                        .filter_by_date_range(pd.to_datetime(st.session_state.date_range[0]), pd.to_datetime(st.session_state.date_range[1])))
+                        .filter_by_date_range(pd.to_datetime(st.session_state.date_range[0]),
+                                              pd.to_datetime(st.session_state.date_range[1])))
 
     df_filtrado = filtered_manager.get_data()
 
