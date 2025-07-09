@@ -3,12 +3,8 @@ import os
 # ---------------------------------------------------
 # Configuración para que Kaleido encuentre el binario
 # ---------------------------------------------------
-# Ajusta la ruta si tu entorno instala chromium o chromium-browser en otro lugar.
+# Ajusta la ruta si en tu entorno instala chromium o chromium-browser en otro lugar.
 os.environ["BROWSER_PATH"] = "/usr/bin/chromium-browser"
-
-# Fuerza a Kaleido a usar ese ejecutable
-import plotly.io as pio
-pio.kaleido.scope.default_executable = os.environ["BROWSER_PATH"]
 # ---------------------------------------------------
 
 import streamlit as st
