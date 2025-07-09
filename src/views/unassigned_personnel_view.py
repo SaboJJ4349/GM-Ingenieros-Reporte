@@ -1,9 +1,6 @@
 import streamlit as st
 import pandas as pd
 import io
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils import safe_date_for_excel, format_date_for_display
 
 def generate_personnel_report_excel(df_original: pd.DataFrame, df_filtrado: pd.DataFrame) -> bytes:
