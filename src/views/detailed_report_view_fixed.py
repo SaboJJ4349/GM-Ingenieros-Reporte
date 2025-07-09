@@ -410,9 +410,9 @@ def render_detailed_report(df: pd.DataFrame):
         # Botón de descarga SOLO del diagrama de Gantt optimizado
         gantt_bytes = gantt_only_to_excel(df)
         st.download_button(
-            label="📈 Descargar Diagrama de Gantt",
+            label="Descargar Diagrama de Gantt",
             data=gantt_bytes,
-            file_name='diagrama_gantt_optimizado.xlsx',
+            file_name='diagrama_gantt_Actual.xlsx',
             mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             help="Descarga únicamente el diagrama de Gantt con gráfico de barras profesional"
         )
