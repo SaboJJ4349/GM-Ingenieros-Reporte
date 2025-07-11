@@ -242,6 +242,25 @@ def render_gantt_view(df: pd.DataFrame):
     gantt_df.loc[gantt_df['fecha_inicio'].isnull() & gantt_df['fecha_limite'].notnull(), 'fecha_inicio'] = gantt_df['fecha_limite'] - pd.Timedelta(days=1)
     gantt_df.loc[gantt_df['fecha_limite'].isnull() & gantt_df['fecha_inicio'].notnull(), 'fecha_limite'] = gantt_df['fecha_inicio'] + pd.Timedelta(days=1)
 
+    # --- Nuevo filtro: sólo tareas con subtareas ---
+if 'gantt_only_with_subtasks' not in st.session_state:
+    st.session_state.gantt_only_with_subtasks = False
+
+st.session_state.gantt_only_with_subtasks = st.checkbox(
+    "Solo mostrar tareas con subtareas",
+    value=st.session_state.gantt_only_with_subtasks,
+    help="Muestra únicamente las tareas principales que tienen al menos una subtarea"
+)
+
+if st.session_state.gantt_only_with_subtasks:
+    # Extraigo todos los IDs de tarea que aparecen como parent_id
+    ids_with_sub = gantt_df['parent_id'].dropna().unique()
+    # Me quedo sólo con las tareas (parent_id null) que estén en esa lista
+    gantt_df = gantt_df[
+        (gantt_df['parent_id'].isnull())
+        & (gantt_df['id'].isin(ids_with_sub))
+    ]
+    
     # Filtrar las tareas que aún no tienen ambas fechas
     gantt_df = gantt_df.dropna(subset=['fecha_inicio', 'fecha_limite'])
 
