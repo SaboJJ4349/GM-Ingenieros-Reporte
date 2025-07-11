@@ -96,12 +96,24 @@ def render_detailed_report(df: pd.DataFrame):
 
     # Preparar DataFrame para mostrar en la app
     display_df = df.copy()
-    display_df['tipo'] = display_df['parent_id'].apply(lambda x: 'Subtarea' if pd.notna(x) else 'Tarea')
+    display_df['tipo'] = display_df['is_subtask'].apply(lambda x: 'Subtarea' if x else 'Tarea')
     
-    # Mostrar tabla en la app
-    st.dataframe(display_df[['nombre', 'tipo', 'estado', 'proyecto', 'asignados', 'fecha_inicio', 'fecha_limite']])
+    # Formatear fechas para una mejor visualización
+    display_df['fecha_inicio'] = display_df['fecha_inicio'].dt.strftime('%d/%m/%Y').fillna('N/A')
+    display_df['fecha_limite'] = display_df['fecha_limite'].dt.strftime('%d/%m/%Y').fillna('N/A')
+    
+    # Convertir lista de asignados a un string
+    display_df['asignados'] = display_df['asignados'].apply(lambda x: ', '.join(x) if isinstance(x, list) and x else 'N/A')
+
+    # Seleccionar y reordenar columnas para la tabla
+    columns_to_display = [
+        'nombre', 'tipo', 'estado', 'proyecto', 
+        'asignados', 'fecha_inicio', 'fecha_limite', 'prioridad'
+    ]
+    st.dataframe(display_df[columns_to_display])
 
     # Botón de descarga de Excel
+    st.markdown("---")
     excel_bytes = df_to_excel_bytes(df)
     st.download_button(
         label="📊 Descargar Reporte Detallado",
