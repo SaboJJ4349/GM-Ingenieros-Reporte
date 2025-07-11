@@ -33,21 +33,34 @@ Una aplicación Streamlit para visualizar y generar reportes de productividad co
 ## Estructura del Proyecto
 
 ```
+GM-Ingenieros-Reporte-main/
+├── .devcontainer/
+│   └── devcontainer.json
+├── .streamlit/
+│   └── config.toml                   # renombrado desde config_app.toml
+├── data/
+│   ├── raw/
+│   │   └── datos_clickup.json        # antes Json/datos.json
+│   └── processed/
+│       └── report.json               # antes datos.json en la raíz
+├── scripts/
+│   └── clickup_to_json.py            # antes Json/main.py
 ├── src/
-│   ├── app.py                 # Punto de entrada principal
-│   ├── data_loader.py         # Carga y normalización de datos
-│   ├── processors.py          # Procesamiento de datos
-│   ├── utils.py              # Utilidades generales
-│   └── views/                # Vistas de la aplicación
-│       ├── dashboard_view.py
-│       ├── detailed_report_view.py
-│       ├── gantt_view.py
-│       ├── unassigned_personnel_view.py
-│       └── general_activity_report_view.py
-├── datos.json                # Archivo de datos
-├── requirements.txt          # Dependencias
-└── .streamlit/
-    └── config.toml          # Configuración de Streamlit
+│   ├── app.py                        # entrypoint Streamlit
+│   ├── data_loader.py
+│   ├── processors.py
+│   ├── utils.py
+│   └── views/
+│       ├── dashboard.py              # renombrado desde dashboard_view.py
+│       ├── detailed_report.py        # renombrado desde detailed_report_view*.py
+│       ├── gantt.py                  # renombrado desde gantt_view.py
+│       ├── unassigned_personnel.py   # renombrado desde unassigned_personnel_view.py
+│       └── general_activity.py       # renombrado desde general_activity_report_view.py
+├── tests/
+│   └── test_data_loader.py           # ejemplo de prueba
+├── requirements.txt
+├── README.md
+└── .gitignore
 ```
 
 ## Funcionalidades de Descarga
