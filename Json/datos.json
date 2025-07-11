@@ -28,7 +28,7 @@
                         "subtareas": [
                             {
                                 "nombre": "Crear reporte Excel asistencia vertical",
-                                "estado": "en progreso",
+                                "estado": "completado",
                                 "asignados": [
                                     "percy barrenechea"
                                 ],
