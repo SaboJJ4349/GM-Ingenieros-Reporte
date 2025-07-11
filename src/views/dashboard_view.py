@@ -56,12 +56,15 @@ def render_dashboard(df: pd.DataFrame):
     tareas_pendientes = len(df[df['estado'] == 'pendiente'])
     tareas_en_progreso = len(df[df['estado'] == 'en progreso'])
     tareas_completadas = len(df[df['estado'] == 'completado'])
+    tareas_aprobadas = len(df[df['estado'] == 'aprobado'])
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     col1.metric("Total Tareas", total_tareas)
     col2.metric("Pendientes", tareas_pendientes)
     col3.metric("En Progreso", tareas_en_progreso)
     col4.metric("Completadas", tareas_completadas)
+    col5.metric("Aprobados", tareas_aprobadas)
+    
 
     st.markdown("---")
 
