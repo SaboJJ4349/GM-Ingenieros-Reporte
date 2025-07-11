@@ -51,6 +51,13 @@ def load_and_flatten_json(path):
 
     df_tasks = pd.DataFrame(tasks)
     df_subtasks = pd.DataFrame(subtasks)
+
+    # Convertir columnas de fecha a datetime64 para evitar errores de tipo
+    df_tasks['fecha_inicio'] = pd.to_datetime(df_tasks['fecha_inicio'], errors='coerce')
+    df_tasks['fecha_limite'] = pd.to_datetime(df_tasks['fecha_limite'], errors='coerce')
+    df_subtasks['fecha_inicio'] = pd.to_datetime(df_subtasks['fecha_inicio'], errors='coerce')
+    df_subtasks['fecha_limite'] = pd.to_datetime(df_subtasks['fecha_limite'], errors='coerce')
+
     return df_tasks, df_subtasks
 
 # ---------------------------------------------
@@ -97,8 +104,13 @@ def main():
     )
 
     # 5. Filtro por rango de fecha de inicio
+    # Usamos skipna=True por defecto y dtype datetime64
     min_fecha = df_tasks['fecha_inicio'].min()
     max_fecha = df_tasks['fecha_inicio'].max()
+    # Convertir Timestamp a date para date_input si es necesario
+    if hasattr(min_fecha, 'date'):
+        min_fecha = min_fecha.date()
+        max_fecha = max_fecha.date()
     selected_range = st.sidebar.date_input(
         "Rango Fecha de Inicio",
         value=(min_fecha, max_fecha),
