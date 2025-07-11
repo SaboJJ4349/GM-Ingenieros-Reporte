@@ -1,129 +1,135 @@
-import os
-import sys
-
-# Añadir el directorio 'src' al sys.path para asegurar que los módulos se encuentren
-# tanto en local como en despliegues en la nube.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
-
-
-# ---------------------------------------------------
-# Configuración para que Kaleido encuentre el binario
-# ---------------------------------------------------
-# Intentamos rutas comunes; la primera que exista la usamos.
-for candidate in (
-    "/usr/bin/chromium",
-    "/usr/bin/chromium-browser",
-    "/usr/bin/google-chrome-stable",
-):
-    if os.path.exists(candidate):
-        os.environ["BROWSER_PATH"] = candidate
-        break
-else:
-    # Si no se encuentra ningún binario, emitimos un warning
-    print("⚠️ WARNING: No se detectó Chrome/Chromium. Verifica packages.txt")
-
-# (Opcional) Habilitar logs de debug de Kaleido
-# os.environ["KALEIDO_DEBUG"] = "1"
-
-import streamlit as st
+import json
+from datetime import datetime
 import pandas as pd
-from data_loader import load_and_normalize_json
-from processors import DataManager
+import streamlit as st
 
-from views.dashboard_view import render_dashboard
-from views.detailed_report_view import render_detailed_report
-from views.gantt_view import render_gantt_view
-from views.unassigned_personnel_view import render_unassigned_personnel_view
-from views.general_activity_report_view import render_general_activity_report
+# ---------------------------------------------
+# Función para cargar y aplanar el JSON de tareas
+# ---------------------------------------------
+def load_and_flatten_json(path):
+    with open(path, 'r', encoding='utf-8') as f:
+        raw = json.load(f)
 
+    tasks = []
+    subtasks = []
+
+    def parse_date(d):
+        try:
+            return datetime.strptime(d, "%d/%m/%y").date() if d else None
+        except:
+            return None
+
+    for area, proyectos in raw.items():
+        for proyecto, contenido in proyectos.items():
+            for carpeta, estados in contenido.items():
+                # carpeta es la 'carpeta' principal dentro de cada proyecto
+                for subcarpeta, lista in estados.items():
+                    # subcarpeta equivale al estado (pendiente, en progreso, etc.)
+                    for t in lista:
+                        tasks.append({
+                            'area': area,
+                            'proyecto': proyecto,
+                            'carpeta': carpeta,
+                            'estado': subcarpeta,
+                            'id': t.get('id'),
+                            'nombre': t.get('nombre'),
+                            'asignados': t.get('asignados', []),
+                            'fecha_inicio': parse_date(t.get('fecha_inicio')),
+                            'fecha_limite': parse_date(t.get('fecha_limite')),
+                            'prioridad': t.get('prioridad')
+                        })
+                        for sub in t.get('subtareas', []):
+                            subtasks.append({
+                                'parent_id': t.get('id'),
+                                'nombre': sub.get('nombre'),
+                                'estado': sub.get('estado'),
+                                'asignados': sub.get('asignados', []),
+                                'fecha_inicio': parse_date(sub.get('fecha_inicio')),
+                                'fecha_limite': parse_date(sub.get('fecha_limite')),
+                                'prioridad': sub.get('prioridad')
+                            })
+
+    df_tasks = pd.DataFrame(tasks)
+    df_subtasks = pd.DataFrame(subtasks)
+    return df_tasks, df_subtasks
+
+# ---------------------------------------------
+# Aplicación Streamlit
+# ---------------------------------------------
 def main():
-    st.set_page_config(
-        page_title="Dashboard de Reportes",
-        page_icon="📊",
-        layout="wide"
-    )
-    st.title("📊 Dashboard de Reportes y Productividad")
+    st.set_page_config(page_title="📋 Tareas y Subtareas", layout="wide")
+    st.title("📋 Tareas y Subtareas con Filtros de Carpeta y Subcarpeta")
 
-    # Cargar datos
-    df_original = load_and_normalize_json('datos.json')
-    if df_original.empty:
-        st.error("No se pudieron cargar los datos o el archivo está vacío.")
+    # Cargar y aplanar JSON
+    df_tasks, df_subtasks = load_and_flatten_json('datos.json')
+    if df_tasks.empty:
+        st.error("No se pudieron cargar las tareas.")
         return
-    data_manager_original = DataManager(df_original)
 
-    # --- Session State para filtros ---
-    if 'selected_areas' not in st.session_state:
-        st.session_state.selected_areas = data_manager_original.get_unique_values('area')
-    if 'selected_proyectos' not in st.session_state:
-        st.session_state.selected_proyectos = data_manager_original.get_unique_values('proyecto')
-    if 'selected_estados' not in st.session_state:
-        st.session_state.selected_estados = data_manager_original.get_unique_values('estado')
-    if 'date_range' not in st.session_state:
-        min_date = df_original['fecha_inicio'].min()
-        max_date = df_original['fecha_inicio'].max()
-        st.session_state.date_range = (min_date, max_date)
-    if 'gantt_selected_proyectos' not in st.session_state:
-        st.session_state.gantt_selected_proyectos = data_manager_original.get_unique_values('proyecto')
+    # Sidebar: filtros globales
+    st.sidebar.header("Filtros")
 
-    # --- Barra lateral de filtros ---
-    st.sidebar.header("Filtros Globales")
-    areas = data_manager_original.get_unique_values('area')
-    st.session_state.selected_areas = st.sidebar.multiselect(
-        "Filtrar por Área", areas, key='multiselect_areas',
-        default=st.session_state.selected_areas
-    )
-    proyectos_filtrados = data_manager_original.filter_by_area(
-        st.session_state.selected_areas
-    ).get_unique_values('proyecto')
-    st.session_state.selected_proyectos = st.sidebar.multiselect(
-        "Filtrar por Proyecto", proyectos_filtrados, key='multiselect_proyectos',
-        default=st.session_state.selected_proyectos
-    )
-    estados = data_manager_original.get_unique_values('estado')
-    st.session_state.selected_estados = st.sidebar.multiselect(
-        "Filtrar por Estado", estados, key='multiselect_estados',
-        default=st.session_state.selected_estados
-    )
-    min_date, max_date = st.session_state.date_range
-    sel_start, sel_end = st.sidebar.date_input(
-        "Filtrar por Fecha de Inicio",
-        value=(min_date, max_date),
-        min_value=min_date, max_value=max_date,
-    )
-    st.session_state.date_range = (sel_start, sel_end)
+    # 1. Filtro por área
+    areas = sorted(df_tasks['area'].unique())
+    selected_areas = st.sidebar.multiselect("Área", areas, default=areas)
 
-    # Aplicar filtros
-    filtered_manager = (
-        data_manager_original
-        .filter_by_area(st.session_state.selected_areas)
-        .filter_by_project(st.session_state.selected_proyectos)
-        .filter_by_status(st.session_state.selected_estados)
-        .filter_by_date_range(
-            pd.to_datetime(sel_start),
-            pd.to_datetime(sel_end)
-        )
+    # 2. Filtro por proyecto
+    proyectos = sorted(
+        df_tasks[df_tasks['area'].isin(selected_areas)]['proyecto'].unique()
     )
-    df_filtrado = filtered_manager.get_data()
-    st.info(f"Mostrando {len(df_filtrado)} de {len(df_original)} tareas según filtros.")
+    selected_proyectos = st.sidebar.multiselect("Proyecto", proyectos, default=proyectos)
 
-    # --- Pestañas ---
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📊 Dashboard Ejecutivo",
-        "📄 Reporte Detallado",
-        "📈 Diagrama de Gantt",
-        "👤 Personal sin Tareas",
-        "⭐ Reporte General"
-    ])
-    with tab1:
-        render_dashboard(df_filtrado)
-    with tab2:
-        render_detailed_report(df_filtrado)
-    with tab3:
-        render_gantt_view(df_original)
-    with tab4:
-        render_unassigned_personnel_view(df_original, df_filtrado)
-    with tab5:
-        render_general_activity_report(df_filtrado)
+    # 3. Filtro por carpeta (nivel intermedio dentro de cada proyecto)
+    carpetas = sorted(
+        df_tasks[
+            df_tasks['area'].isin(selected_areas) &
+            df_tasks['proyecto'].isin(selected_proyectos)
+        ]['carpeta'].unique()
+    )
+    selected_carpetas = st.sidebar.multiselect("Carpeta", carpetas, default=carpetas)
 
-if __name__ == "__main__":
+    # 4. Filtro por subcarpeta (estado)
+    subcarpetas = sorted(
+        df_tasks[df_tasks['carpeta'].isin(selected_carpetas)]['estado'].unique()
+    )
+    selected_subcarpetas = st.sidebar.multiselect(
+        "Subcarpeta (Estado)", subcarpetas, default=subcarpetas
+    )
+
+    # 5. Filtro por rango de fecha de inicio
+    min_fecha = df_tasks['fecha_inicio'].min()
+    max_fecha = df_tasks['fecha_inicio'].max()
+    selected_range = st.sidebar.date_input(
+        "Rango Fecha de Inicio",
+        value=(min_fecha, max_fecha),
+        min_value=min_fecha,
+        max_value=max_fecha
+    )
+
+    # Aplicar filtros encadenados
+    df_filtered = df_tasks[
+        df_tasks['area'].isin(selected_areas) &
+        df_tasks['proyecto'].isin(selected_proyectos) &
+        df_tasks['carpeta'].isin(selected_carpetas) &
+        df_tasks['estado'].isin(selected_subcarpetas) &
+        df_tasks['fecha_inicio'].between(selected_range[0], selected_range[1])
+    ]
+
+    st.info(f"Mostrando {len(df_filtered)} tareas de {len(df_tasks)} totales.")
+
+    # Mostrar tareas y sus subtareas dentro de expanders
+    for _, tarea in df_filtered.iterrows():
+        with st.expander(f"{tarea['id']} - {tarea['nombre']} ({tarea['carpeta']} / {tarea['estado']})"):
+            st.markdown(f"**Prioridad:** {tarea['prioridad'] or '-'}")
+            st.markdown(f"**Asignados:** {', '.join(tarea['asignados']) or '-'}")
+            st.markdown(f"**Fecha inicio:** {tarea['fecha_inicio'] or '-'}")
+            st.markdown(f"**Fecha límite:** {tarea['fecha_limite'] or '-'}")
+
+            subs = df_subtasks[df_subtasks['parent_id'] == tarea['id']]
+            if not subs.empty:
+                st.table(subs[['nombre','estado','prioridad','fecha_inicio','fecha_limite','asignados']])
+            else:
+                st.write("_Sin subtareas_")
+
+if __name__ == '__main__':
     main()
